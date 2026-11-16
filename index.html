@@ -1,7 +1,550 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>qr-share</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f4f5f7;color:#6b7280;font:15px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif}@media(prefers-color-scheme:dark){body{background:#0b0c0f;color:#9ca3af}}</style>
-</head><body><p>没有需要展示的内容。请扫描发送人给你的二维码。</p></body></html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0c0f" media="(prefers-color-scheme: dark)">
+<title>QIN加密分享工具</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --brand: #111827;
+  --brand-ink: #ffffff;
+  --err: #dc2626;
+  --ok: #059669;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0c0f;
+    --card: #16181d;
+    --ink: #f3f4f6;
+    --muted: #9ca3af;
+    --line: #262a31;
+    --brand: #f3f4f6;
+    --brand-ink: #111827;
+    --err: #f87171;
+    --ok: #34d399;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+}
+main { width: 100%; max-width: 520px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 26px 22px;
+  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+}
+.lock {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+h1 { font-size: 21px; line-height: 1.35; margin: 0 0 6px; font-weight: 650; letter-spacing: 0.2px; }
+.sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+form { display: flex; flex-direction: column; gap: 10px; }
+input[type="password"], input[type="text"] {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 17px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  outline: none;
+  text-align: center;
+  letter-spacing: 2px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input:focus { border-color: var(--muted); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.16); }
+button {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brand-ink);
+  background: var(--brand);
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.06s ease;
+}
+button:active { transform: scale(0.99); }
+button[disabled] { opacity: 0.55; cursor: default; }
+.err { min-height: 22px; margin: 12px 0 0; color: var(--err); font-size: 14px; text-align: center; }
+.err.shake { animation: shake 0.32s ease; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.progress { margin: 12px 0 0; color: var(--muted); font-size: 13px; text-align: center; min-height: 20px; }
+.results { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+.file {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.file img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+}
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.name { font-size: 14px; font-weight: 600; word-break: break-all; }
+.size { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dl {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.hidden { display: none !important; }
+.brand { margin: 0 0 14px; text-align: center; font-size: 13px; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+.note { margin: 10px 0 0; color: var(--muted); font-size: 12px; text-align: center; line-height: 1.6; }
+.shot { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--bg); }
+.shot img { display: block; width: 100%; height: auto; background: #fff; cursor: zoom-in; }
+.cap { padding: 8px 14px; font-size: 12px; color: var(--muted); }
+.media { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #000; }
+.media video { display: block; width: 100%; max-height: 70vh; background: #000; }
+.media.audio { background: var(--bg); }
+.media audio { display: block; width: 100%; }
+.media .cap { background: var(--card); }
+.rowfile { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: var(--bg); }
+.rowfile .name { font-size: 14px; font-weight: 600; word-break: break-all; }
+.rowfile .size { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.rowfile .dl { padding: 8px 12px; font-size: 13px; }
+.hintbox { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--bg); color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
+.full { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,.94); display: flex; flex-direction: column; }
+.full img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+.full .close { flex: none; width: auto; margin: 12px auto calc(16px + env(safe-area-inset-bottom)); padding: 10px 22px; font-size: 14px; background: #fff; color: #111827; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">QIN加密分享工具</div>
+  <section class="card">
+    <div class="lock"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10" width="15" height="10.5" rx="2.6"/><path d="M8 10V7.4a4 4 0 0 1 8 0V10"/><circle cx="12" cy="15.2" r="1.3" fill="currentColor" stroke="none"/></svg></div>
+    <h1>QIN加密分享工具</h1>
+    <p class="sub">输入你拿到的密码，打开对应的文件</p>
+    <form id="gate" autocomplete="off">
+      <input id="pw" type="password" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="密码" aria-label="密码" required>
+      <button id="go" type="submit">打开</button>
+    </form>
+    <p id="err" class="err" role="alert"></p>
+    <p id="progress" class="progress"></p>
+    <div id="out" class="results"></div>
+    <p id="note" class="note hidden">还没有文件，或网站正在构建，稍后再扫码试试</p>
+  </section>
+  <footer>
+    QIN加密分享工具 · 文件以 AES-256-GCM 加密存放，密码只在你的手机上参与解密<br>
+    图片可长按保存 · 视频和音频点开即播 · 其他文件点「下载」或用浏览器打开
+  </footer>
+  <div id="full" class="full hidden">
+    <button id="closefull" class="close" type="button">关闭</button>
+    <img id="fullimg" alt="">
+  </div>
+</main>
+<script>
+(function () {
+  var MANIFEST_URL = 'vault/manifest.json';
+  var MARKER = 'QINSHARE';
+  var IV_BYTES = 12;
+  var enc = new TextEncoder();
+  var dec = new TextDecoder();
+  var wechat = /MicroMessenger/i.test(navigator.userAgent || '');
+
+  var form = document.getElementById('gate');
+  var input = document.getElementById('pw');
+  var button = document.getElementById('go');
+  var errBox = document.getElementById('err');
+  var progress = document.getElementById('progress');
+  var out = document.getElementById('out');
+  var note = document.getElementById('note');
+  var full = document.getElementById('full');
+  var fullImg = document.getElementById('fullimg');
+
+  var site = { salt: null, iterations: 310000, bundles: [], loaded: false };
+  var busy = false;
+
+  function showNote(text) {
+    note.textContent = text;
+    note.classList.remove('hidden');
+  }
+
+  function hideNote() {
+    note.classList.add('hidden');
+  }
+
+  function fail(message) {
+    errBox.textContent = message;
+    errBox.classList.remove('shake');
+    void errBox.offsetWidth;
+    errBox.classList.add('shake');
+  }
+
+  function delay(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function b64(text) {
+    var raw = atob(String(text || ''));
+    var out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+
+  function cat(a, b) {
+    var out = new Uint8Array(a.length + b.length);
+    out.set(a, 0);
+    out.set(b, a.length);
+    return out;
+  }
+
+  function readable(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function mimeOf(name) {
+    var ext = (name.split('.').pop() || '').toLowerCase();
+    var map = {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+      webp: 'image/webp', bmp: 'image/bmp', avif: 'image/avif', svg: 'image/svg+xml',
+      mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', ogv: 'video/ogg',
+      mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', aac: 'audio/aac', ogg: 'audio/ogg', flac: 'audio/flac',
+      pdf: 'application/pdf', txt: 'text/plain', md: 'text/plain', json: 'application/json',
+      doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      zip: 'application/zip', rar: 'application/vnd.rar'
+    };
+    return map[ext] || 'application/octet-stream';
+  }
+
+  var bootTask = null;
+
+  function boot() {
+    if (bootTask) return bootTask;
+    bootTask = fetch(MANIFEST_URL, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('manifest ' + res.status);
+      return res.json();
+    }).then(function (manifest) {
+      site.salt = b64(manifest.salt);
+      site.iterations = Number(manifest.iterations) || 310000;
+      site.bundles = Array.isArray(manifest.bundles) ? manifest.bundles : [];
+      site.loaded = true;
+      if (!site.bundles.length) showNote('还没有文件，或网站正在构建，稍后再扫码试试');
+    }).catch(function () {
+      site.loaded = true;
+      showNote('还没有文件，或网站正在构建，稍后再扫码试试');
+    });
+    return bootTask;
+  }
+
+  function deriveKey(password) {
+    return crypto.subtle.importKey('raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']).then(function (base) {
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: site.salt, iterations: site.iterations, hash: 'SHA-256' },
+        base,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+    });
+  }
+
+  function verify(key, check) {
+    if (!check || !check.iv || !check.ct || !check.tag) return Promise.resolve(false);
+    var data = cat(b64(check.ct), b64(check.tag));
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(check.iv), tagLength: 128 }, key, data).then(function (buf) {
+      return dec.decode(buf) === MARKER;
+    }, function () {
+      return false;
+    });
+  }
+
+  function fetchBlob(path, version) {
+    var url = path + '?v=' + encodeURIComponent(version || '');
+    function once(tries) {
+      return fetch(url, { cache: 'no-store' }).then(function (res) {
+        if (res.ok) return res.arrayBuffer();
+        if (tries < 2) return delay(1500).then(function () { return once(tries + 1); });
+        throw new Error('文件加载失败（' + res.status + '）');
+      }, function (error) {
+        if (tries < 2) return delay(1500).then(function () { return once(tries + 1); });
+        throw error;
+      });
+    }
+    return once(0).then(function (buf) { return new Uint8Array(buf); });
+  }
+
+  function openFile(key, meta) {
+    return fetchBlob(meta.path, meta.v).then(function (blob) {
+      if (blob.length < IV_BYTES + 16) throw new Error('bad blob');
+      return crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: blob.subarray(0, IV_BYTES), tagLength: 128 },
+        key,
+        blob.subarray(IV_BYTES)
+      );
+    }).then(function (buf) {
+      var plain = new Uint8Array(buf);
+      var headerLength = (plain[0] << 8) | plain[1];
+      var header = JSON.parse(dec.decode(plain.subarray(2, 2 + headerLength)));
+      return { name: header.n, kind: header.k, bytes: plain.subarray(2 + headerLength) };
+    });
+  }
+
+  function copyText(text) {
+    function fallback() {
+      var area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      try { document.execCommand('copy'); } catch (error) { /* older WebView */ }
+      document.body.removeChild(area);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(fallback);
+    }
+    fallback();
+    return Promise.resolve();
+  }
+
+  function openFull(src, alt) {
+    fullImg.src = src;
+    fullImg.alt = alt || '';
+    full.classList.remove('hidden');
+  }
+
+  function closeFull() {
+    full.classList.add('hidden');
+    fullImg.removeAttribute('src');
+  }
+
+  function downloadName(file) {
+    return file.name;
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function renderOne(file) {
+    var mime = mimeOf(file.name);
+    var url = URL.createObjectURL(new Blob([file.bytes], { type: mime }));
+    var wrap;
+
+    if (file.kind === 'img') {
+      wrap = el('div', 'shot');
+      var img = document.createElement('img');
+      img.src = url;
+      img.alt = file.name;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.addEventListener('click', function () { openFull(url, file.name); });
+      wrap.appendChild(img);
+      var cap = el('div', 'cap', file.name + ' · ' + readable(file.bytes.length));
+      if (wechat) cap.textContent += ' · 长按图片保存';
+      wrap.appendChild(cap);
+      return wrap;
+    }
+
+    if (file.kind === 'video') {
+      wrap = el('div', 'media');
+      var video = document.createElement('video');
+      video.controls = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.preload = 'metadata';
+      video.src = url;
+      wrap.appendChild(video);
+      wrap.appendChild(el('div', 'cap', file.name + ' · ' + readable(file.bytes.length)));
+      return wrap;
+    }
+
+    if (file.kind === 'audio') {
+      wrap = el('div', 'media audio');
+      var audio = document.createElement('audio');
+      audio.controls = true;
+      audio.preload = 'metadata';
+      audio.src = url;
+      wrap.appendChild(audio);
+      wrap.appendChild(el('div', 'cap', file.name + ' · ' + readable(file.bytes.length)));
+      return wrap;
+    }
+
+    wrap = el('div', 'rowfile');
+    var info = el('div');
+    info.appendChild(el('div', 'name', file.name));
+    info.appendChild(el('div', 'size', readable(file.bytes.length)));
+    wrap.appendChild(info);
+
+    var link = document.createElement('a');
+    link.className = 'dl';
+    link.href = url;
+    link.setAttribute('download', downloadName(file));
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = '下载';
+    if (!wechat) {
+      wrap.appendChild(link);
+    } else {
+      var button = el('button', 'dl', '复制链接');
+      button.type = 'button';
+      button.style.width = 'auto';
+      button.addEventListener('click', function () {
+        copyText(location.href).then(function () {
+          button.textContent = '已复制';
+          setTimeout(function () { button.textContent = '复制链接'; }, 1500);
+        });
+      });
+      wrap.appendChild(button);
+    }
+    return wrap;
+  }
+
+  function render(opened) {
+    out.innerHTML = '';
+    opened.forEach(function (file) { out.appendChild(renderOne(file)); });
+    if (wechat) {
+      var hint = el('div', 'hintbox', '微信里如果点不开文件，点右上角 ··· → 在浏览器打开这个页面再试。');
+      out.appendChild(hint);
+    }
+  }
+
+  function reset() {
+    busy = false;
+    button.disabled = false;
+    button.textContent = '打开';
+    progress.textContent = '';
+  }
+
+  function submit() {
+    if (busy) return;
+    var password = input.value;
+    errBox.textContent = '';
+    if (!password) { fail('请输入密码'); return; }
+    if (!window.crypto || !window.crypto.subtle) {
+      fail('当前浏览器不支持解密，请在系统浏览器（如 Safari / Chrome）中打开本页');
+      return;
+    }
+    if (!site.loaded) {
+      busy = true;
+      button.disabled = true;
+      progress.textContent = '正在加载…';
+      boot().then(function () {
+        busy = false;
+        button.disabled = false;
+        submit();
+      });
+      return;
+    }
+    if (!site.salt) { fail('还没有可打开的文件，或网站正在构建，稍后再试'); return; }
+
+    busy = true;
+    button.disabled = true;
+    button.textContent = '验证中…';
+    out.innerHTML = '';
+    hideNote();
+    progress.textContent = '正在验证密码…';
+
+    deriveKey(password).then(function (key) {
+      var found = null;
+      var chain = Promise.resolve();
+      site.bundles.forEach(function (bundle) {
+        chain = chain.then(function () {
+          if (found) return undefined;
+          return verify(key, bundle.check).then(function (ok) { if (ok) found = bundle; });
+        });
+      });
+      return chain.then(function () {
+        if (!found) throw Object.assign(new Error('wrong password'), { name: 'WrongPassword' });
+        progress.textContent = '正在打开 ' + found.files.length + ' 个文件…';
+        return Promise.all(found.files.map(function (meta) {
+          return openFile(key, meta).then(function (file) { return file; }, function (error) {
+            if (error && error.name === 'OperationError') return null;
+            throw error;
+          });
+        })).then(function (opened) {
+          opened = opened.filter(Boolean);
+          if (!opened.length) throw new Error('文件解不开，让发送人重新发一次吧');
+          render(opened);
+        });
+      });
+    }).then(function () {
+      reset();
+    }, function (error) {
+      reset();
+      if (error && error.name === 'WrongPassword') {
+        fail('密码不对，或者这个密码对应的文件已经删除了');
+        return;
+      }
+      fail(error && error.message ? error.message : '打开失败，请稍后重试');
+    });
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    submit();
+  });
+  full.addEventListener('click', function (event) {
+    if (event.target === full) closeFull();
+  });
+  document.getElementById('closefull').addEventListener('click', closeFull);
+
+  boot();
+})();
+</script>
+</body>
+</html>
