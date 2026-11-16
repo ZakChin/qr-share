@@ -2,5 +2,21 @@
   "v": 1,
   "salt": "ENgvDrny9MulzRDZuH4VzA==",
   "iterations": 310000,
-  "bundles": []
+  "bundles": [
+    {
+      "id": "nna579fj",
+      "check": {
+        "iv": "UJ8HIFilRVvD1aUj",
+        "ct": "Ukhb4ANpdRg=",
+        "tag": "0t5u4+z92c0t0CAiPauH9g=="
+      },
+      "files": [
+        {
+          "id": "dajbs9fz",
+          "path": "vault/files/dajbs9fz.bin",
+          "v": "8c8ced3cf8"
+        }
+      ]
+    }
+  ]
 }
