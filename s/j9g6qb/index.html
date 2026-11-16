@@ -7,7 +7,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0b0c0f" media="(prefers-color-scheme: dark)">
-<title>简历材料</title>
+<title>简历材料 · QIN共享加密工具</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -140,11 +140,13 @@ button[disabled] { opacity: 0.55; cursor: default; }
   text-decoration: none;
 }
 .hidden { display: none !important; }
+.brand { margin: 0 0 14px; text-align: center; font-size: 13px; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
 footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.7; }
 </style>
 </head>
 <body>
 <main>
+  <div class="brand">QIN共享加密工具</div>
   <section class="card">
     <div class="lock"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10" width="15" height="10.5" rx="2.6"/><path d="M8 10V7.4a4 4 0 0 1 8 0V10"/><circle cx="12" cy="15.2" r="1.3" fill="currentColor" stroke="none"/></svg></div>
     <h1>简历材料</h1>
@@ -158,13 +160,13 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
     <div id="out" class="results"></div>
   </section>
   <footer>
-    文件以 AES-256-GCM 加密存放，密码只在你的手机上参与解密<br>
+    QIN共享加密工具 · 文件以 AES-256-GCM 加密存放，密码只在你的手机上参与解密<br>
     图片可长按保存到相册 · 其他文件点「下载」
   </footer>
 </main>
 <script>
 (function () {
-  var ITEMS = [{"i":1,"v":"8b805f4a78"},{"i":2,"v":"0a9034b7dc"}];
+  var ITEMS = [{},{}];
   var ITERATIONS = 310000;
   var SALT_BYTES = 16, IV_BYTES = 12;
   var enc = new TextEncoder();
