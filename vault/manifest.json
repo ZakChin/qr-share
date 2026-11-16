@@ -2,21 +2,5 @@
   "v": 1,
   "salt": "ENgvDrny9MulzRDZuH4VzA==",
   "iterations": 310000,
-  "bundles": [
-    {
-      "id": "5bqgv5ef",
-      "check": {
-        "iv": "QhZwHjZyX8uHF4gN",
-        "ct": "/QwEKfrZStQ=",
-        "tag": "idMK3z+ZgkwGj1pDCPg0zg=="
-      },
-      "files": [
-        {
-          "id": "wrz2eypn",
-          "path": "vault/files/wrz2eypn.bin",
-          "v": "0bb3deda1f"
-        }
-      ]
-    }
-  ]
+  "bundles": []
 }
