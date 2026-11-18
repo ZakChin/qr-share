@@ -310,7 +310,9 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
   function fetchBlob(path, version) {
     var url = path + '?v=' + encodeURIComponent(version || '');
     function once(tries) {
-      return fetch(url, { cache: 'no-store' }).then(function (res) {
+      // The URL is content-addressed by ?v=<hash>, so the browser cache can be
+      // trusted: reopening the same file must not hit the network again.
+      return fetch(url, { cache: 'default' }).then(function (res) {
         if (res.ok) return res.arrayBuffer();
         if (tries < 2) return delay(1500).then(function () { return once(tries + 1); });
         throw new Error('文件加载失败（' + res.status + '）');
@@ -322,8 +324,48 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
     return once(0).then(function (buf) { return new Uint8Array(buf); });
   }
 
+  var blobPromises = Object.create(null);
+  var prefetchStarted = false;
+
+  /** One fetch per encrypted file, shared by every open of this page session. */
+  function loadBlob(meta) {
+    var key = meta.path + '|' + (meta.v || '');
+    if (!blobPromises[key]) {
+      blobPromises[key] = fetchBlob(meta.path, meta.v).catch(function (error) {
+        delete blobPromises[key]; // a failed download must not poison later tries
+        throw error;
+      });
+    }
+    return blobPromises[key];
+  }
+
+  /**
+   * Start pulling the ciphertexts while the visitor is still typing. Which
+   * bundle matches is only known after the password check, so warming all of
+   * them is the only way to hide the network latency. The blobs are public
+   * ciphertext anyway; the trade-off is a little bandwidth for a fast first open.
+   */
+  function prefetch() {
+    if (prefetchStarted || !site.loaded || !site.bundles.length) return;
+    if (navigator.connection && navigator.connection.saveData) return; // respect data saver
+    prefetchStarted = true;
+    var metas = [];
+    site.bundles.forEach(function (bundle) {
+      (bundle.files || []).forEach(function (meta) { if (meta && meta.path) metas.push(meta); });
+    });
+    var cap = Math.min(metas.length, 12); // don't spend mobile data on a huge vault
+    var cursor = 0;
+    function worker() {
+      if (cursor >= cap) return Promise.resolve();
+      var meta = metas[cursor];
+      cursor += 1;
+      return loadBlob(meta).then(worker, worker);
+    }
+    for (var i = 0; i < Math.min(4, cap); i += 1) worker();
+  }
+
   function openFile(key, meta) {
-    return fetchBlob(meta.path, meta.v).then(function (blob) {
+    return loadBlob(meta).then(function (blob) {
       if (blob.length < IV_BYTES + 16) throw new Error('bad blob');
       return crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: blob.subarray(0, IV_BYTES), tagLength: 128 },
@@ -454,15 +496,6 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
     return wrap;
   }
 
-  function render(opened) {
-    out.innerHTML = '';
-    opened.forEach(function (file) { out.appendChild(renderOne(file)); });
-    if (wechat) {
-      var hint = el('div', 'hintbox', '微信里如果点不开文件，点右上角 ··· → 在浏览器打开这个页面再试。');
-      out.appendChild(hint);
-    }
-  }
-
   function reset() {
     busy = false;
     button.disabled = false;
@@ -510,16 +543,25 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
       });
       return chain.then(function () {
         if (!found) throw Object.assign(new Error('wrong password'), { name: 'WrongPassword' });
-        progress.textContent = '正在打开 ' + found.files.length + ' 个文件…';
-        return Promise.all(found.files.map(function (meta) {
-          return openFile(key, meta).then(function (file) { return file; }, function (error) {
+        var files = found.files || [];
+        var total = files.length;
+        var done = 0;
+        out.innerHTML = '';
+        progress.textContent = '正在打开 ' + total + ' 个文件…';
+        return Promise.all(files.map(function (meta) {
+          return openFile(key, meta).then(function (file) {
+            done += 1;
+            progress.textContent = '正在打开 ' + done + '/' + total + ' 个文件…';
+            out.appendChild(renderOne(file)); // show each file as soon as it opens
+            return file;
+          }, function (error) {
             if (error && error.name === 'OperationError') return null;
             throw error;
           });
         })).then(function (opened) {
           opened = opened.filter(Boolean);
           if (!opened.length) throw new Error('文件解不开，让发送人重新发一次吧');
-          render(opened);
+          if (wechat) out.appendChild(el('div', 'hintbox', '微信里如果点不开文件，点右上角 ··· → 在浏览器打开这个页面再试。'));
         });
       });
     }).then(function () {
@@ -538,6 +580,8 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
     event.preventDefault();
     submit();
   });
+  input.addEventListener('input', prefetch);
+  input.addEventListener('focus', prefetch);
   full.addEventListener('click', function (event) {
     if (event.target === full) closeFull();
   });
