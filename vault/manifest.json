@@ -97,21 +97,6 @@
           "v": "31b5aa6d60"
         }
       ]
-    },
-    {
-      "id": "us47dr7v",
-      "check": {
-        "iv": "qcB1lYwzhGOvZzGs",
-        "ct": "HiiTiO4sYyI=",
-        "tag": "MbA+Pf1r1Z7b4dW8URv4wQ=="
-      },
-      "files": [
-        {
-          "id": "xtyymfh3",
-          "path": "vault/files/xtyymfh3.bin",
-          "v": "702b89125b"
-        }
-      ]
     }
   ]
 }
