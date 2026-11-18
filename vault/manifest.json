@@ -4,31 +4,6 @@
   "iterations": 310000,
   "bundles": [
     {
-      "id": "jc3bppgp",
-      "check": {
-        "iv": "r1RlKC8O31bNiWpU",
-        "ct": "UcobkTENFJA=",
-        "tag": "xgadPO6w6cfaCjTuJO0UNA=="
-      },
-      "files": [
-        {
-          "id": "fg5hs842",
-          "path": "vault/files/fg5hs842.bin",
-          "v": "7d0b3bd9ff"
-        },
-        {
-          "id": "7fna645q",
-          "path": "vault/files/7fna645q.bin",
-          "v": "c30d6ad35b"
-        },
-        {
-          "id": "s45y75q7",
-          "path": "vault/files/s45y75q7.bin",
-          "v": "f5acf9ab03"
-        }
-      ]
-    },
-    {
       "id": "zeftzgcb",
       "check": {
         "iv": "hdiocHR2s+SVhnvn",
