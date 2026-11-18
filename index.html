@@ -190,6 +190,7 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
 <script>
 (function () {
   var MANIFEST_URL = 'vault/manifest.json';
+  var BLOB_BASES = ["https://cdn.jsdelivr.net/gh/ZakChin/qr-share@main/"];
   var MARKER = 'QINSHARE';
   var IV_BYTES = 12;
   var enc = new TextEncoder();
@@ -308,20 +309,27 @@ footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 1
   }
 
   function fetchBlob(path, version) {
-    var url = path + '?v=' + encodeURIComponent(version || '');
-    function once(tries) {
-      // The URL is content-addressed by ?v=<hash>, so the browser cache can be
-      // trusted: reopening the same file must not hit the network again.
-      return fetch(url, { cache: 'default' }).then(function (res) {
+    // Encrypted files are content-addressed by ?v=<hash>, so the browser cache
+    // can be trusted: reopening the same file must not hit the network again.
+    // The first base is an optional CDN (jsDelivr); the last one is the site
+    // itself. A dead CDN must degrade to the origin, never to an error.
+    var bases = BLOB_BASES.concat(['']);
+    function urlFor(base) {
+      return base + path + '?v=' + encodeURIComponent(version || '');
+    }
+    function attempt(index, tries) {
+      return fetch(urlFor(bases[index]), { cache: 'default' }).then(function (res) {
         if (res.ok) return res.arrayBuffer();
-        if (tries < 2) return delay(1500).then(function () { return once(tries + 1); });
+        if (tries < 1) return delay(1200).then(function () { return attempt(index, tries + 1); });
+        if (index + 1 < bases.length) return attempt(index + 1, 0);
         throw new Error('文件加载失败（' + res.status + '）');
       }, function (error) {
-        if (tries < 2) return delay(1500).then(function () { return once(tries + 1); });
+        if (tries < 1) return delay(1200).then(function () { return attempt(index, tries + 1); });
+        if (index + 1 < bases.length) return attempt(index + 1, 0);
         throw error;
       });
     }
-    return once(0).then(function (buf) { return new Uint8Array(buf); });
+    return attempt(0, 0).then(function (buf) { return new Uint8Array(buf); });
   }
 
   var blobPromises = Object.create(null);
